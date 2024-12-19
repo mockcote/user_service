@@ -1,4 +1,4 @@
-package com.user;
+package com.mockcote;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
