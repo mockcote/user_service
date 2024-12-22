@@ -1,16 +1,28 @@
 package com.mockcote.user.controller;
 
+import com.mockcote.user.dto.JoinRequest;
+import com.mockcote.user.dto.User;
+import com.mockcote.user.service.UserService;
 import com.mockcote.user.util.JwtUtil;
+
+import lombok.RequiredArgsConstructor;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.net.http.HttpRequest;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @RestController
 @RequestMapping("/auth")
+@RequiredArgsConstructor
 public class AuthController {
-
+	
+	private final UserService userService;
+	
     @Autowired
     private JwtUtil jwtUtil;
 
@@ -27,4 +39,5 @@ public class AuthController {
             return ResponseEntity.status(401).body("Invalid credentials");
         }
     }
+    
 }
