@@ -39,4 +39,5 @@ public class UserEntity {
         this.pw = pw;
         this.handle = handle;
     }
+
 }

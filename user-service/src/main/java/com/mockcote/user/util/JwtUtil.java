@@ -12,23 +12,46 @@ import java.util.Base64;
 @Component
 public class JwtUtil {
 
-	private final byte[] secretKey;
-	private final long expirationTime;
+    private final byte[] secretKey;
+    private final long accessExpirationTime;
+    private final long refreshExpirationTime;
 
-	public JwtUtil(@Value("${jwt.secret}") String secret, @Value("${jwt.expiration:3600000}") long expiration) { // 기본값
-																													// 1시간
-		this.secretKey = Base64.getDecoder().decode(secret);
-		this.expirationTime = expiration;
-	}
+    public JwtUtil(
+            @Value("${jwt.secret}") String secret,
+            @Value("${jwt.accessExpiration:3600000}") long accessExpiration,  // 기본값: 1시간
+            @Value("${jwt.refreshExpiration:43200000}") long refreshExpiration // 기본값: 12시간
+    ) {
+        this.secretKey = Base64.getDecoder().decode(secret);
+        this.accessExpirationTime = accessExpiration;
+        this.refreshExpirationTime = refreshExpiration;
+    }
 
-	public String generateToken(String username) {
-	    System.out.println("Generating token for user: " + username);
-	    return Jwts.builder()
-	            .setSubject(username)
-	            .setIssuedAt(new Date())
-	            .setExpiration(new Date(System.currentTimeMillis() + expirationTime))
-	            .signWith(Keys.hmacShaKeyFor(secretKey), SignatureAlgorithm.HS256)
-	            .compact();
-	}
+    /**
+     * 액세스 토큰 생성
+     */
+    public String generateToken(String userId,String handle) {
+        System.out.println("Generating access token for user: " + userId);
+        return Jwts.builder()
+                .setSubject(handle)
+                .claim("userId", userId)
+                .setIssuedAt(new Date())
+                .setExpiration(new Date(System.currentTimeMillis() + accessExpirationTime))
+                .signWith(Keys.hmacShaKeyFor(secretKey), SignatureAlgorithm.HS256)
+                .compact();
+    }
 
+    /**
+     * 리프레시 토큰 생성
+     */
+    public String generateRefreshToken(String userId,String handle) {
+        System.out.println("Generating refresh token for user: " + userId);
+        return Jwts.builder()
+                .setSubject(handle)
+                .setIssuedAt(new Date())
+                .setExpiration(new Date(System.currentTimeMillis() + refreshExpirationTime))
+                .claim("userId", userId)
+                .claim("type", "refresh") // 토큰 유형 구분을 위한 클레임 추가 (선택)
+                .signWith(Keys.hmacShaKeyFor(secretKey), SignatureAlgorithm.HS256)
+                .compact();
+    }
 }
