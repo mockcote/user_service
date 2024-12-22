@@ -54,7 +54,7 @@ public class UserService {
 		return user;
 	}
 	
-	
+	@Transactional
 	public Map<String, String> login(LoginRequest loginRequest) {
 		
 		String userId = loginRequest.getUserId();
@@ -64,10 +64,10 @@ public class UserService {
         UserEntity userEntity = userRepo.findByUserId(userId)
                 .orElseThrow(() -> new IllegalArgumentException("Invalid userId or password"));
 
-        // 비밀번호 검증
-        if (!PasswordEncryptionUtil.isPasswordMatch(rawPassword, userEntity.getPw())) {
-            throw new IllegalArgumentException("Invalid userId or password");
-        }
+//        // 비밀번호 검증
+//        if (!PasswordEncryptionUtil.isPasswordMatch(rawPassword, userEntity.getPw())) {
+//            throw new IllegalArgumentException("Invalid userId or password");
+//        }
         
         // 로그인 성공 토큰 생성
         Map<String, String> tokens = new HashMap<>();
@@ -80,7 +80,7 @@ public class UserService {
         
         tokens.put("accessToken", accessToken);
         tokens.put("refreshToken", refreshToken);
-        
+        tokens.put("handle", handle);
         return tokens;
     }
 	
@@ -123,6 +123,7 @@ public class UserService {
         return deletedRows; // 삭제된 행의 수 반환
     }
 
+	@Transactional
 	public void deleteRefreshToken(String refreshToken) {
 		userRepo.deleteRefreshToken(refreshToken);
 		

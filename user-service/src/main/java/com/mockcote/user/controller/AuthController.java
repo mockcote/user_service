@@ -52,7 +52,7 @@ public class AuthController {
         }
     }
     
-    @DeleteMapping("/logout")
+    @PostMapping("/logout")
 	public ResponseEntity<String> logout(@CookieValue(value = "refreshToken", required = false) String refreshToken, 
 	                                     HttpServletResponse response) {
 	    if (refreshToken != null) {
