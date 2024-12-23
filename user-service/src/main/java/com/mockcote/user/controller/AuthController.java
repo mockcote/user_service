@@ -61,9 +61,13 @@ public class AuthController {
     @PostMapping("/logout")
 	public ResponseEntity<String> logout(@CookieValue(value = "refreshToken", required = false) String refreshToken, 
 	                                     HttpServletResponse response) {
+    	
+    	Claims claim = jwtUtil.getClaimFromRefreshToken(refreshToken);
+		String userId = (String) claim.get("userId");
+		
 	    if (refreshToken != null) {
 	        // DB에서 리프레시 토큰 삭제
-	        userService.deleteRefreshToken(refreshToken);
+	        userService.deleteRefreshToken(userId);
 	    }
 
 	    // 쿠키 삭제

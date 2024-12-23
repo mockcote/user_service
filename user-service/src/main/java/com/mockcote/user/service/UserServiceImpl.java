@@ -125,8 +125,8 @@ public class UserServiceImpl implements UserService {
     }
 
 	@Transactional
-	public void deleteRefreshToken(String refreshToken) {
-		userRepo.deleteRefreshToken(refreshToken);
+	public void deleteRefreshToken(String userId) {
+		userRepo.deleteRefreshTokenByUserId(userId);
 		
 	}
 

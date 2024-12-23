@@ -37,8 +37,8 @@ public interface UserRepository extends JpaRepository<UserEntity, Integer> {
 	void updateRefreshToken(@Param("userId") String userId, @Param("refreshToken") String refreshToken);
 	
 	@Modifying
-	@Query("DELETE FROM UserEntity u WHERE u.refreshToken = :refreshToken")
-	void deleteRefreshToken(@Param("refreshToken") String refreshToken);
+	@Query("UPDATE UserEntity u SET u.refreshToken = null WHERE u.userId = :userId")
+	void deleteRefreshTokenByUserId(@Param("userId") String userId);
 	
 	
 }
