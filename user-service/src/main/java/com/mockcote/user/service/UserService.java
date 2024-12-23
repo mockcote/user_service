@@ -30,7 +30,8 @@ public class UserService {
 	@Transactional
 	public int join(JoinRequest join) {
 		try {
-			UserEntity user = new UserEntity(join.getUserId(), join.getPw(), join.getHandle());
+			String endcodedPw = PasswordEncryptionUtil.encryptPassword(join.getPw());
+			UserEntity user = new UserEntity(join.getUserId(), endcodedPw, join.getHandle());
 			
 			UserEntity result = userRepo.save(user);
 			
@@ -64,10 +65,10 @@ public class UserService {
         UserEntity userEntity = userRepo.findByUserId(userId)
                 .orElseThrow(() -> new IllegalArgumentException("Invalid userId or password"));
 
-//        // 비밀번호 검증
-//        if (!PasswordEncryptionUtil.isPasswordMatch(rawPassword, userEntity.getPw())) {
-//            throw new IllegalArgumentException("Invalid userId or password");
-//        }
+        // 비밀번호 검증
+        if (!PasswordEncryptionUtil.isPasswordMatch(rawPassword, userEntity.getPw())) {
+            throw new IllegalArgumentException("Invalid userId or password");
+        }
         
         // 로그인 성공 토큰 생성
         Map<String, String> tokens = new HashMap<>();
