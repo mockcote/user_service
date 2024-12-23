@@ -19,7 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.mockcote.user.dto.JoinRequest;
 import com.mockcote.user.dto.User;
-import com.mockcote.user.service.UserService;
+import com.mockcote.user.service.UserServiceImpl;
 import com.mockcote.user.util.JwtUtil;
 
 import io.jsonwebtoken.Claims;
@@ -31,7 +31,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class UserController {
 	
-	private final UserService userService;
+	private final UserServiceImpl userService;
 	
 	private final JwtUtil jwtUtil;
 	

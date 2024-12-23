@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.mockcote.user.dto.LoginRequest;
-import com.mockcote.user.service.UserService;
+import com.mockcote.user.service.UserServiceImpl;
 import com.mockcote.user.util.JwtUtil;
 
 import io.jsonwebtoken.Claims;
@@ -30,7 +30,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class AuthController {
 	
-	private final UserService userService;
+	private final UserServiceImpl userService;
 	
     @Autowired
     private JwtUtil jwtUtil;
