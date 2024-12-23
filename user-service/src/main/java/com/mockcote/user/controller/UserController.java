@@ -6,6 +6,7 @@ import java.util.Map;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -18,8 +19,10 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.mockcote.user.dto.JoinRequest;
 import com.mockcote.user.dto.User;
-import com.mockcote.user.service.UserService;
+import com.mockcote.user.service.UserServiceImpl;
+import com.mockcote.user.util.JwtUtil;
 
+import io.jsonwebtoken.Claims;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 
@@ -28,7 +31,9 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class UserController {
 	
-	private final UserService userService;
+	private final UserServiceImpl userService;
+	
+	private final JwtUtil jwtUtil;
 	
     @GetMapping("/hello")
     public String hello(@RequestHeader(value = "X-Authenticated-User", required = false) String username,
@@ -111,8 +116,5 @@ public class UserController {
             return ResponseEntity.badRequest().body("No matching user found for handle: " + handle);
         }
     }
-    
-    
-    
     
 }

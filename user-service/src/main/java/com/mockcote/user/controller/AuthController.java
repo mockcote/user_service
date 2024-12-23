@@ -1,21 +1,27 @@
 package com.mockcote.user.controller;
 
+import java.util.HashMap;
 import java.util.Map;
 
+import org.apache.catalina.connector.Response;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.mockcote.user.dto.LoginRequest;
-import com.mockcote.user.service.UserService;
+import com.mockcote.user.service.UserServiceImpl;
 import com.mockcote.user.util.JwtUtil;
 
+import io.jsonwebtoken.Claims;
 import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 
@@ -24,7 +30,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class AuthController {
 	
-	private final UserService userService;
+	private final UserServiceImpl userService;
 	
     @Autowired
     private JwtUtil jwtUtil;
@@ -36,7 +42,7 @@ public class AuthController {
             // UserService로 로그인 검증
         	Map<String, String> tokens = userService.login(loginRequest);
         	
-        	Cookie refreshTokenCookie = new Cookie("refreshToken",tokens.get("refreshToken"));
+        	Cookie refreshTokenCookie = new Cookie("refreshToken", tokens.get("refreshToken"));
         	refreshTokenCookie.setHttpOnly(true); // JavaScript 접근 금지
     	    refreshTokenCookie.setSecure(true); // HTTPS에서만 전송 (HTTPS 환경에서 설정)
     	    refreshTokenCookie.setPath("/"); // 모든 경로에서 쿠키 사용 가능
@@ -70,4 +76,27 @@ public class AuthController {
 
 	    return ResponseEntity.ok("로그아웃이 완료되었습니다.");
 	}
+    
+    @GetMapping("/refresh")
+    public ResponseEntity<?> refresh(@CookieValue(value = "refreshToken") String refreshToken) {
+    	if(refreshToken == null) {
+    		return ResponseEntity.status(401).body("No Refresh Token found");
+    	}
+    	
+    	if(jwtUtil.validateRefreshToken(refreshToken)) {
+    		Map<String, Object> response = new HashMap<>();
+    		
+    		Claims claim = jwtUtil.getClaimFromRefreshToken(refreshToken);
+    		String userId = (String) claim.get("userId");
+    		String handle = claim.getSubject();
+    		
+    		String accessToken = jwtUtil.generateToken(userId, handle);
+    		response.put("accessToken", accessToken);
+    		
+    		System.out.println("토큰 재발급");
+    		return ResponseEntity.ok(response);
+    	} else {
+    		return ResponseEntity.status(401).body("invalid refresh token");
+    	}
+    }
 }
