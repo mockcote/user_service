@@ -128,6 +128,8 @@ public class AuthController {
     	
     	return ResponseEntity.ok(response);
 
+    }
+    
     @PostMapping("/handle-auth")
     public ResponseEntity<String> handleAuth(@RequestBody HandleAuthRequest handleAuthRequest) {
         boolean res = handleAuthUtil.validateSubmission(handleAuthRequest);
