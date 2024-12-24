@@ -7,6 +7,7 @@ import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.mockcote.user.dto.JoinRequest;
 import com.mockcote.user.dto.LoginRequest;
 import com.mockcote.user.dto.User;
@@ -14,6 +15,7 @@ import com.mockcote.user.entity.UserEntity;
 import com.mockcote.user.repository.UserRepository;
 import com.mockcote.user.util.JwtUtil;
 import com.mockcote.user.util.PasswordEncryptionUtil;
+import com.mockcote.user.util.SolvedacUtil;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -27,11 +29,19 @@ public class UserServiceImpl implements UserService {
 	@Autowired
     private JwtUtil jwtUtil;
 	
+	private final SolvedacUtil solvedUtil;
+	
 	@Transactional
 	public int join(JoinRequest join) {
 		try {
+			JsonNode data = solvedUtil.getUserData(join.getHandle());
+			if(data == null) {
+				throw new IllegalArgumentException("Invalid handle");
+			}
+			int level = data.get("tier").asInt();
+			
 			String endcodedPw = PasswordEncryptionUtil.encryptPassword(join.getPw());
-			UserEntity user = new UserEntity(join.getUserId(), endcodedPw, join.getHandle());
+			UserEntity user = new UserEntity(join.getUserId(), endcodedPw, join.getHandle(), level);
 			
 			UserEntity result = userRepo.save(user);
 			
@@ -42,6 +52,8 @@ public class UserServiceImpl implements UserService {
 			return 0;
 		}
 	}
+	
+	
 	
 	public List<User> selectAll() {
 		List<User> list = userRepo.findAllUser();
@@ -73,6 +85,17 @@ public class UserServiceImpl implements UserService {
         // 로그인 성공 토큰 생성
         Map<String, String> tokens = new HashMap<>();
         String handle = userEntity.getHandle();
+        
+        JsonNode data = getSolvedData(handle);
+        if (data == null) {
+            throw new IllegalStateException("Failed to retrieve solved data");
+        }
+        
+        int cnt = userRepo.updateLevel(userId, data.get("tier").asInt());
+        
+        if(cnt == 0) throw new IllegalStateException("티어 업데이트 실패로 인한 로그인 실패"); 
+        
+        int level = userEntity.getLevel();
         String accessToken = jwtUtil.generateToken(userId,handle);
         String refreshToken = jwtUtil.generateRefreshToken(userId,handle);
         
@@ -82,6 +105,8 @@ public class UserServiceImpl implements UserService {
         tokens.put("accessToken", accessToken);
         tokens.put("refreshToken", refreshToken);
         tokens.put("handle", handle);
+        tokens.put("level", level + "");
+        
         return tokens;
     }
 	
@@ -123,6 +148,19 @@ public class UserServiceImpl implements UserService {
         System.out.println("User with handle " + handle + " deleted successfully.");
         return deletedRows; // 삭제된 행의 수 반환
     }
+	
+	public JsonNode getSolvedData(String handle) {
+		try {
+			JsonNode data = solvedUtil.getUserData(handle);
+			System.out.println("solved data: " +  data);
+			
+			return data;
+		}catch (Exception e) {
+			// TODO: handle exception
+			e.printStackTrace();
+			return null;
+		}
+	}
 
 	@Transactional
 	public void deleteRefreshToken(String userId) {

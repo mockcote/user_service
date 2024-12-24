@@ -9,12 +9,14 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.mockcote.user.dto.LoginRequest;
 import com.mockcote.user.service.UserServiceImpl;
 import com.mockcote.user.util.JwtUtil;
@@ -48,6 +50,16 @@ public class AuthController {
     	    refreshTokenCookie.setPath("/"); // 모든 경로에서 쿠키 사용 가능
     	    refreshTokenCookie.setMaxAge(12 * 60 * 60); // 12시간 (리프레시 토큰 만료 시간과 일치)
     	    response.addCookie(refreshTokenCookie);
+    	    
+    	    Cookie handleCookie = new Cookie("handle", tokens.get("handle"));
+    	    refreshTokenCookie.setPath("/"); // 모든 경로에서 쿠키 사용 가능
+    	    refreshTokenCookie.setMaxAge(12 * 60 * 60); // 12시간 (리프레시 토큰 만료 시간과 일치)
+    	    response.addCookie(handleCookie);
+    	    
+    	    Cookie levelCookie = new Cookie("level", tokens.get("level"));
+    	    refreshTokenCookie.setPath("/"); // 모든 경로에서 쿠키 사용 가능
+    	    refreshTokenCookie.setMaxAge(12 * 60 * 60); // 12시간 (리프레시 토큰 만료 시간과 일치)
+    	    response.addCookie(levelCookie);
     	    
     	    tokens.remove("refreshToken");
     	    
@@ -102,5 +114,18 @@ public class AuthController {
     	} else {
     		return ResponseEntity.status(401).body("invalid refresh token");
     	}
+    }
+    
+    @GetMapping("/level/{handle}")
+    public ResponseEntity<?> getLevel(@PathVariable("handle") String handle) {
+    	JsonNode data = userService.getSolvedData(handle);
+    	if(data == null) return ResponseEntity.badRequest().body("invalid handle");
+    	
+    	Map<String, Object> response = new HashMap<>();
+    	response.put("data", data);
+    	
+    	System.out.println("data: " + data.get("tier"));
+    	
+    	return ResponseEntity.ok(response);
     }
 }

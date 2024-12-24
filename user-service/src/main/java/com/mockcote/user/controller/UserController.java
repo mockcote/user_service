@@ -59,7 +59,7 @@ public class UserController {
 			int cnt = userService.join(join);
 			
 			if(cnt == 0) {
-				return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("회원가입에 실패하였습니다.");
+				return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("cnt 0 회원가입에 실패하였습니다.");
 			} 
 			
 			return ResponseEntity.ok("회원가입 성공");
