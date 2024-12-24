@@ -15,10 +15,10 @@ import com.mockcote.user.entity.UserEntity;
 @Repository
 public interface UserRepository extends JpaRepository<UserEntity, Integer> {
 
-	@Query("SELECT new com.mockcote.user.dto.User(u.id, u.userId, u.handle) FROM UserEntity u")
+	@Query("SELECT new com.mockcote.user.dto.User(u.id, u.userId, u.handle, u.level) FROM UserEntity u")
 	List<User> findAllUser();
 
-	@Query("SELECT new com.mockcote.user.dto.User(u.id, u.userId, u.handle) FROM UserEntity u where u.handle = :handle")
+	@Query("SELECT new com.mockcote.user.dto.User(u.id, u.userId, u.handle, u.level) FROM UserEntity u where u.handle = :handle")
 	User findUser(@Param("handle") String handle);
 	
 	@Query("SELECT u FROM UserEntity u WHERE u.userId = :userId")
@@ -40,5 +40,8 @@ public interface UserRepository extends JpaRepository<UserEntity, Integer> {
 	@Query("UPDATE UserEntity u SET u.refreshToken = null WHERE u.userId = :userId")
 	void deleteRefreshTokenByUserId(@Param("userId") String userId);
 	
+	@Modifying
+	@Query("UPDATE UserEntity u SET u.level = :level WHERE u.userId = :userId")
+	int updateLevel(@Param("userId") String userId, @Param("level") int level);
 	
 }

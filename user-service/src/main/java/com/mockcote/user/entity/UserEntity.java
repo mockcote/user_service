@@ -31,13 +31,17 @@ public class UserEntity {
 	@Column(nullable = false)
 	private String handle;
 	
+	@Column(nullable = false)
+	private int level;
+	
 	@Column(nullable = true)
 	private String refreshToken = null;
 	
-	public UserEntity(String userId, String pw, String handle) {
+	public UserEntity(String userId, String pw, String handle, int level) {
         this.userId = userId;
         this.pw = pw;
         this.handle = handle;
+        this.level = level;
     }
 
 }

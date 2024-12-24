@@ -11,4 +11,5 @@ public class User {
 	private int id;
 	private String userId;
 	private String handle;
+	private int level;
 }
