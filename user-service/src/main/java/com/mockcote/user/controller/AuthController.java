@@ -3,25 +3,23 @@ package com.mockcote.user.controller;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.apache.catalina.connector.Response;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CookieValue;
-import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.mockcote.user.dto.HandleAuthRequest;
 import com.mockcote.user.dto.LoginRequest;
 import com.mockcote.user.service.UserServiceImpl;
+import com.mockcote.user.util.HandleAuthUtil;
 import com.mockcote.user.util.JwtUtil;
 
 import io.jsonwebtoken.Claims;
 import jakarta.servlet.http.Cookie;
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 
@@ -34,6 +32,8 @@ public class AuthController {
 	
     @Autowired
     private JwtUtil jwtUtil;
+    @Autowired
+    private HandleAuthUtil handleAuthUtil;
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest loginRequest, HttpServletResponse response) {
@@ -102,5 +102,16 @@ public class AuthController {
     	} else {
     		return ResponseEntity.status(401).body("invalid refresh token");
     	}
+    }
+    
+    @PostMapping("/handle-auth")
+    public ResponseEntity<String> handleAuth(@RequestBody HandleAuthRequest handleAuthRequest) {
+        boolean res = handleAuthUtil.validateSubmission(handleAuthRequest);
+        if (res) {
+            return ResponseEntity.ok("검증 완료 되었습니다.");
+        } else {
+            // 검증 실패 시 400 Bad Request 상태 코드와 함께 실패 메시지 반환
+            return ResponseEntity.badRequest().body("검증에 실패했습니다. 제출 내역을 확인해주세요.");
+        }
     }
 }
