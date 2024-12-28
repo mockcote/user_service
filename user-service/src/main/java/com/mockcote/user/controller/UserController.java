@@ -6,9 +6,12 @@ import java.util.Map;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.CookieValue;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -16,8 +19,10 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.mockcote.user.dto.JoinRequest;
 import com.mockcote.user.dto.User;
-import com.mockcote.user.service.UserService;
+import com.mockcote.user.service.UserServiceImpl;
+import com.mockcote.user.util.JwtUtil;
 
+import io.jsonwebtoken.Claims;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 
@@ -26,7 +31,9 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class UserController {
 	
-	private final UserService userService;
+	private final UserServiceImpl userService;
+	
+	private final JwtUtil jwtUtil;
 	
     @GetMapping("/hello")
     public String hello(@RequestHeader(value = "X-Authenticated-User", required = false) String username,
@@ -52,7 +59,7 @@ public class UserController {
 			int cnt = userService.join(join);
 			
 			if(cnt == 0) {
-				return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("회원가입에 실패하였습니다.");
+				return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("cnt 0 회원가입에 실패하였습니다.");
 			} 
 			
 			return ResponseEntity.ok("회원가입 성공");
@@ -80,5 +87,34 @@ public class UserController {
     	return ResponseEntity.ok(user);
     }
     
+    
+    @PutMapping("/{handle}")
+    public ResponseEntity<String> updatePassword(
+            @PathVariable String handle,
+            @RequestBody String rawPassword) {
+        int updatedRows = userService.updateUserPassword(handle, rawPassword);
+
+        if (updatedRows > 0) {
+            return ResponseEntity.ok(handle);
+        } else {
+            return ResponseEntity.badRequest().body("No matching user found for handle: " + handle);
+        }
+    }
+
+    /**
+     * 유저 삭제 (DELETE 요청)
+     * @param handle 유저 핸들
+     * @return 삭제된 행의 수
+     */
+    @DeleteMapping("/{handle}")
+    public ResponseEntity<String> deleteUser(@PathVariable String handle) {
+        int deletedRows = userService.deleteUserByHandle(handle);
+
+        if (deletedRows > 0) {
+            return ResponseEntity.ok(handle);
+        } else {
+            return ResponseEntity.badRequest().body("No matching user found for handle: " + handle);
+        }
+    }
     
 }
