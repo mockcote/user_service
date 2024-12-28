@@ -52,13 +52,13 @@ public class AuthController {
     	    response.addCookie(refreshTokenCookie);
     	    
     	    Cookie handleCookie = new Cookie("handle", tokens.get("handle"));
-    	    refreshTokenCookie.setPath("/"); // 모든 경로에서 쿠키 사용 가능
-    	    refreshTokenCookie.setMaxAge(12 * 60 * 60); // 12시간 (리프레시 토큰 만료 시간과 일치)
+    	    handleCookie.setPath("/"); // 모든 경로에서 쿠키 사용 가능
+    	    handleCookie.setMaxAge(12 * 60 * 60); // 12시간 (리프레시 토큰 만료 시간과 일치)
     	    response.addCookie(handleCookie);
     	    
     	    Cookie levelCookie = new Cookie("level", tokens.get("level"));
-    	    refreshTokenCookie.setPath("/"); // 모든 경로에서 쿠키 사용 가능
-    	    refreshTokenCookie.setMaxAge(12 * 60 * 60); // 12시간 (리프레시 토큰 만료 시간과 일치)
+    	    levelCookie.setPath("/"); // 모든 경로에서 쿠키 사용 가능
+    	    levelCookie.setMaxAge(12 * 60 * 60); // 12시간 (리프레시 토큰 만료 시간과 일치)
     	    response.addCookie(levelCookie);
     	    
     	    tokens.remove("refreshToken");
@@ -89,6 +89,16 @@ public class AuthController {
 	    refreshTokenCookie.setPath("/");
 	    refreshTokenCookie.setMaxAge(0); // 쿠키 즉시 만료
 	    response.addCookie(refreshTokenCookie);
+	    
+	    Cookie handleCookie = new Cookie("handle", null);
+	    handleCookie.setPath("/"); // 모든 경로에서 쿠키 사용 가능
+	    handleCookie.setMaxAge(0); // 12시간 (리프레시 토큰 만료 시간과 일치)
+	    response.addCookie(handleCookie);
+
+	    Cookie levelCookie = new Cookie("level", null);
+	    levelCookie.setPath("/"); // 모든 경로에서 쿠키 사용 가능
+	    levelCookie.setMaxAge(0); // 12시간 (리프레시 토큰 만료 시간과 일치)
+	    response.addCookie(levelCookie);
 
 	    return ResponseEntity.ok("로그아웃이 완료되었습니다.");
 	}
