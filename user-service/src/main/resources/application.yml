@@ -1,0 +1,32 @@
+server:
+  port: 8081
+
+spring:
+  application:
+    name: user-service
+
+  # DB 설정
+  datasource:
+    url: jdbc:mysql://localhost:3306/mockcote_user?serverTimezone=Asia/Seoul
+    username: ssafy
+    password: ssafyssafy
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  # JPA 설정
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        format_sql: true
+    open-in-view: false
+
+jwt:
+  secret: 7nepDBvcmydW2xwfhL0Dk9qiPWq9pYtGKVQoncHP8Ok=
+  expiration: 3600000
+
+logging:
+  level:
+    root: INFO
+    org.springframework.web: DEBUG
+    com.example.userservice: DEBUG
