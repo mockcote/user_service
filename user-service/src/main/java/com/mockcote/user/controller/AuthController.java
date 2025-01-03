@@ -48,7 +48,7 @@ public class AuthController {
             // Refresh Token 쿠키 설정
             ResponseCookie refreshTokenCookie = ResponseCookie.from("refreshToken", tokens.get("refreshToken"))
                     .httpOnly(true)
-                    .secure(true) // 개발 단계에서는 false로 설정, 배포 시 true로 변경
+                    .secure(false) // 개발 단계에서는 false로 설정, 배포 시 true로 변경
                     .sameSite("None")
                     .path("/")
                     .maxAge(12 * 60 * 60)
@@ -96,7 +96,7 @@ public class AuthController {
         // 쿠키 삭제
         ResponseCookie refreshTokenCookie = ResponseCookie.from("refreshToken", "")
                 .httpOnly(true)
-                .secure(true)
+                .secure(false)
                 .sameSite("None")
                 .path("/")
                 .maxAge(0) // 즉시 만료
