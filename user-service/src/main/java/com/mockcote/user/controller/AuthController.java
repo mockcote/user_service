@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -39,36 +40,39 @@ public class AuthController {
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest loginRequest, HttpServletResponse response) {
-
         try {
-            // UserService로 로그인 검증
-        	Map<String, String> tokens = userService.login(loginRequest);
-        	
-        	Cookie refreshTokenCookie = new Cookie("refreshToken", tokens.get("refreshToken"));
-        	refreshTokenCookie.setHttpOnly(true); // JavaScript 접근 금지
-    	    refreshTokenCookie.setSecure(true); // HTTPS에서만 전송 (HTTPS 환경에서 설정)
-    	    refreshTokenCookie.setPath("/"); // 모든 경로에서 쿠키 사용 가능
-    	    refreshTokenCookie.setMaxAge(12 * 60 * 60); // 12시간 (리프레시 토큰 만료 시간과 일치)
-    	    response.addCookie(refreshTokenCookie);
-    	    
-    	    Cookie handleCookie = new Cookie("handle", tokens.get("handle"));
-    	    handleCookie.setPath("/"); // 모든 경로에서 쿠키 사용 가능
-    	    handleCookie.setMaxAge(12 * 60 * 60); // 12시간 (리프레시 토큰 만료 시간과 일치)
-    	    response.addCookie(handleCookie);
-    	    
-    	    Cookie levelCookie = new Cookie("level", tokens.get("level"));
-    	    levelCookie.setPath("/"); // 모든 경로에서 쿠키 사용 가능
-    	    levelCookie.setMaxAge(12 * 60 * 60); // 12시간 (리프레시 토큰 만료 시간과 일치)
-    	    response.addCookie(levelCookie);
-    	    
-    	    tokens.remove("refreshToken");
-    	    
-    	    return ResponseEntity.ok(tokens);
+            Map<String, String> tokens = userService.login(loginRequest);
+
+            ResponseCookie refreshTokenCookie = ResponseCookie.from("refreshToken", tokens.get("refreshToken"))
+                    .httpOnly(true)
+                    .secure(true)
+                    .sameSite("None")
+                    .path("/")
+                    .maxAge(12 * 60 * 60)
+                    .build();
+            response.addHeader("Set-Cookie", refreshTokenCookie.toString());
+
+            ResponseCookie handleCookie = ResponseCookie.from("handle", tokens.get("handle"))
+                    .sameSite("None")
+                    .path("/")
+                    .maxAge(12 * 60 * 60)
+                    .build();
+            response.addHeader("Set-Cookie", handleCookie.toString());
+
+            ResponseCookie levelCookie = ResponseCookie.from("level", tokens.get("level"))
+                    .sameSite("None")
+                    .path("/")
+                    .maxAge(12 * 60 * 60)
+                    .build();
+            response.addHeader("Set-Cookie", levelCookie.toString());
+
+            tokens.remove("refreshToken");
+            return ResponseEntity.ok(tokens);
         } catch (IllegalArgumentException e) {
-            // 검증 실패 시 401 응답
             return ResponseEntity.status(401).body(Map.of("error", e.getMessage()));
         }
     }
+
     
     @PostMapping("/logout")
 	public ResponseEntity<String> logout(@CookieValue(value = "refreshToken", required = false) String refreshToken, 
