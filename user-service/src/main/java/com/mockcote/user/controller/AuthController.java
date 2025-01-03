@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CookieValue;
@@ -22,7 +23,6 @@ import com.mockcote.user.util.HandleAuthUtil;
 import com.mockcote.user.util.JwtUtil;
 
 import io.jsonwebtoken.Claims;
-import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 
@@ -30,129 +30,142 @@ import lombok.RequiredArgsConstructor;
 @RequestMapping("/auth")
 @RequiredArgsConstructor
 public class AuthController {
-	
-	private final UserServiceImpl userService;
-	
+
+    private final UserServiceImpl userService;
+
     @Autowired
     private JwtUtil jwtUtil;
+
     @Autowired
     private HandleAuthUtil handleAuthUtil;
 
+    // 로그인
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest loginRequest, HttpServletResponse response) {
         try {
             Map<String, String> tokens = userService.login(loginRequest);
 
+            // Refresh Token 쿠키 설정
             ResponseCookie refreshTokenCookie = ResponseCookie.from("refreshToken", tokens.get("refreshToken"))
                     .httpOnly(true)
-                    .secure(true)
+                    .secure(true) // 개발 단계에서는 false로 설정, 배포 시 true로 변경
                     .sameSite("None")
                     .path("/")
                     .maxAge(12 * 60 * 60)
                     .build();
-            response.addHeader("Set-Cookie", refreshTokenCookie.toString());
+            response.addHeader(HttpHeaders.SET_COOKIE, refreshTokenCookie.toString());
 
+            // Handle 쿠키 설정
             ResponseCookie handleCookie = ResponseCookie.from("handle", tokens.get("handle"))
                     .sameSite("None")
                     .path("/")
                     .maxAge(12 * 60 * 60)
                     .build();
-            response.addHeader("Set-Cookie", handleCookie.toString());
+            response.addHeader(HttpHeaders.SET_COOKIE, handleCookie.toString());
 
+            // Level 쿠키 설정
             ResponseCookie levelCookie = ResponseCookie.from("level", tokens.get("level"))
                     .sameSite("None")
                     .path("/")
                     .maxAge(12 * 60 * 60)
                     .build();
-            response.addHeader("Set-Cookie", levelCookie.toString());
+            response.addHeader(HttpHeaders.SET_COOKIE, levelCookie.toString());
 
             tokens.remove("refreshToken");
             return ResponseEntity.ok(tokens);
+
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(401).body(Map.of("error", e.getMessage()));
         }
     }
 
-    
+    // 로그아웃
     @PostMapping("/logout")
-	public ResponseEntity<String> logout(@CookieValue(value = "refreshToken", required = false) String refreshToken, 
-	                                     HttpServletResponse response) {
-    	
-    	Claims claim = jwtUtil.getClaimFromRefreshToken(refreshToken);
-		String userId = (String) claim.get("userId");
-		
-	    if (refreshToken != null) {
-	        // DB에서 리프레시 토큰 삭제
-	        userService.deleteRefreshToken(userId);
-	    }
+    public ResponseEntity<String> logout(@CookieValue(value = "refreshToken", required = false) String refreshToken, 
+                                         HttpServletResponse response) {
+        if (refreshToken == null) {
+            return ResponseEntity.status(401).body("No Refresh Token found");
+        }
 
-	    // 쿠키 삭제
-	    Cookie refreshTokenCookie = new Cookie("refreshToken", null);
-	    refreshTokenCookie.setHttpOnly(true);
-	    refreshTokenCookie.setSecure(true);
-	    refreshTokenCookie.setPath("/");
-	    refreshTokenCookie.setMaxAge(0); // 쿠키 즉시 만료
-	    response.addCookie(refreshTokenCookie);
-	    
-	    Cookie handleCookie = new Cookie("handle", null);
-	    handleCookie.setPath("/"); // 모든 경로에서 쿠키 사용 가능
-	    handleCookie.setMaxAge(0); // 12시간 (리프레시 토큰 만료 시간과 일치)
-	    response.addCookie(handleCookie);
+        Claims claim = jwtUtil.getClaimFromRefreshToken(refreshToken);
+        String userId = (String) claim.get("userId");
 
-	    Cookie levelCookie = new Cookie("level", null);
-	    levelCookie.setPath("/"); // 모든 경로에서 쿠키 사용 가능
-	    levelCookie.setMaxAge(0); // 12시간 (리프레시 토큰 만료 시간과 일치)
-	    response.addCookie(levelCookie);
+        // DB에서 리프레시 토큰 삭제
+        userService.deleteRefreshToken(userId);
 
-	    return ResponseEntity.ok("로그아웃이 완료되었습니다.");
-	}
-    
-    @GetMapping("/refresh")
-    public ResponseEntity<?> refresh(@CookieValue(value = "refreshToken") String refreshToken) {
-    	if(refreshToken == null) {
-    		return ResponseEntity.status(401).body("No Refresh Token found");
-    	}
-    	
-    	if(jwtUtil.validateRefreshToken(refreshToken)) {
-    		Map<String, Object> response = new HashMap<>();
-    		
-    		Claims claim = jwtUtil.getClaimFromRefreshToken(refreshToken);
-    		String userId = (String) claim.get("userId");
-    		String handle = claim.getSubject();
-    		
-    		String accessToken = jwtUtil.generateToken(userId, handle);
-    		response.put("accessToken", accessToken);
-    		
-    		System.out.println("토큰 재발급");
-    		return ResponseEntity.ok(response);
-    	} else {
-    		return ResponseEntity.status(401).body("invalid refresh token");
-    	}
+        // 쿠키 삭제
+        ResponseCookie refreshTokenCookie = ResponseCookie.from("refreshToken", "")
+                .httpOnly(true)
+                .secure(true)
+                .sameSite("None")
+                .path("/")
+                .maxAge(0) // 즉시 만료
+                .build();
+        response.addHeader(HttpHeaders.SET_COOKIE, refreshTokenCookie.toString());
+
+        ResponseCookie handleCookie = ResponseCookie.from("handle", "")
+                .sameSite("None")
+                .path("/")
+                .maxAge(0)
+                .build();
+        response.addHeader(HttpHeaders.SET_COOKIE, handleCookie.toString());
+
+        ResponseCookie levelCookie = ResponseCookie.from("level", "")
+                .sameSite("None")
+                .path("/")
+                .maxAge(0)
+                .build();
+        response.addHeader(HttpHeaders.SET_COOKIE, levelCookie.toString());
+
+        return ResponseEntity.ok("로그아웃이 완료되었습니다.");
     }
-    
+
+    // 리프레시 토큰으로 액세스 토큰 재발급
+    @GetMapping("/refresh")
+    public ResponseEntity<?> refresh(@CookieValue(value = "refreshToken", required = false) String refreshToken) {
+        if (refreshToken == null) {
+            return ResponseEntity.status(401).body("No Refresh Token found");
+        }
+
+        if (jwtUtil.validateRefreshToken(refreshToken)) {
+            Map<String, Object> response = new HashMap<>();
+
+            Claims claim = jwtUtil.getClaimFromRefreshToken(refreshToken);
+            String userId = (String) claim.get("userId");
+            String handle = claim.getSubject();
+
+            // 액세스 토큰 재발급
+            String accessToken = jwtUtil.generateToken(userId, handle);
+            response.put("accessToken", accessToken);
+
+            return ResponseEntity.ok(response);
+        } else {
+            return ResponseEntity.status(401).body("Invalid Refresh Token");
+        }
+    }
+
+    // 사용자 레벨 조회
     @GetMapping("/level/{handle}")
     public ResponseEntity<?> getLevel(@PathVariable("handle") String handle) {
-    	JsonNode data = userService.getSolvedData(handle);
-    	if(data == null) return ResponseEntity.badRequest().body("invalid handle");
-    	
-    	Map<String, Object> response = new HashMap<>();
-    	response.put("data", data);
-    	
-    	System.out.println("data: " + data.get("tier"));
-    	
-    	return ResponseEntity.ok(response);
+        JsonNode data = userService.getSolvedData(handle);
+        if (data == null) {
+            return ResponseEntity.badRequest().body("Invalid handle");
+        }
 
+        Map<String, Object> response = new HashMap<>();
+        response.put("data", data);
+
+        return ResponseEntity.ok(response);
     }
-    
+
+    // Handle 인증
     @PostMapping("/handle-auth")
     public ResponseEntity<String> handleAuth(@RequestBody HandleAuthRequest handleAuthRequest) {
         boolean res = handleAuthUtil.validateSubmission(handleAuthRequest);
         if (res) {
             return ResponseEntity.ok("검증 완료 되었습니다.");
         } else {
-            // 검증 실패 시 400 Bad Request 상태 코드와 함께 실패 메시지 반환
             return ResponseEntity.badRequest().body("검증에 실패했습니다. 제출 내역을 확인해주세요.");
         }
-
     }
 }
