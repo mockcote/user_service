@@ -9,15 +9,18 @@ import org.springframework.security.web.SecurityFilterChain;
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
-	
-	// Spring Security의 필터 체인을 정의하는 메서드
+
     @Bean
-    public SecurityFilterChain  securityWebFilterChain(HttpSecurity  http) throws Exception {
+    public SecurityFilterChain securityWebFilterChain(HttpSecurity http) throws Exception {
         return http
                 // CSRF 보호 기능 비활성화(REST API)
                 .csrf(csrf -> csrf.disable())
+
+                // 요청 경로에 대한 접근 제어
                 .authorizeHttpRequests(auth -> auth
-                		.requestMatchers("/user/**","/auth/**").permitAll()
-                		.anyRequest().permitAll()).build();
+                        .requestMatchers("/user/**", "/auth/**").permitAll() // 특정 경로 허용
+                        .anyRequest().permitAll() // 나머지 요청도 허용
+                )
+                .build();
     }
 }

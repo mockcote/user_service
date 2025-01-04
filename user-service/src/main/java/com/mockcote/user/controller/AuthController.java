@@ -32,6 +32,7 @@ import lombok.RequiredArgsConstructor;
 public class AuthController {
 
     private final UserServiceImpl userService;
+    private final int EXPIRED_HOUR = 12 * 60 * 60;
 
     @Autowired
     private JwtUtil jwtUtil;
@@ -48,26 +49,30 @@ public class AuthController {
             // Refresh Token 쿠키 설정
             ResponseCookie refreshTokenCookie = ResponseCookie.from("refreshToken", tokens.get("refreshToken"))
                     .httpOnly(true)
-                    .secure(false) // 개발 단계에서는 false로 설정, 배포 시 true로 변경
-                    .sameSite("None")
+                    .secure(false) // 개발 단계에서는 false, 배포 시 true로 설정
+                    .sameSite("Lax") // 필요에 따라 환경 설정
                     .path("/")
-                    .maxAge(12 * 60 * 60)
+                    .maxAge(EXPIRED_HOUR)
                     .build();
             response.addHeader(HttpHeaders.SET_COOKIE, refreshTokenCookie.toString());
 
             // Handle 쿠키 설정
             ResponseCookie handleCookie = ResponseCookie.from("handle", tokens.get("handle"))
-                    .sameSite("None")
+            		.httpOnly(true)
+            		.secure(false) // 개발 단계에서는 false, 배포 시 true로 설정
+                    .sameSite("Lax") // 필요에 따라 환경 설정
                     .path("/")
-                    .maxAge(12 * 60 * 60)
+                    .maxAge(EXPIRED_HOUR)
                     .build();
             response.addHeader(HttpHeaders.SET_COOKIE, handleCookie.toString());
 
             // Level 쿠키 설정
             ResponseCookie levelCookie = ResponseCookie.from("level", tokens.get("level"))
-                    .sameSite("None")
+            		.httpOnly(true)
+            		.secure(false) // 개발 단계에서는 false, 배포 시 true로 설정
+                    .sameSite("Lax") // 필요에 따라 환경 설정
                     .path("/")
-                    .maxAge(12 * 60 * 60)
+                    .maxAge(EXPIRED_HOUR)
                     .build();
             response.addHeader(HttpHeaders.SET_COOKIE, levelCookie.toString());
 
@@ -81,7 +86,7 @@ public class AuthController {
 
     // 로그아웃
     @PostMapping("/logout")
-    public ResponseEntity<String> logout(@CookieValue(value = "refreshToken", required = false) String refreshToken, 
+    public ResponseEntity<String> logout(@CookieValue(value = "refreshToken", required = false) String refreshToken,
                                          HttpServletResponse response) {
         if (refreshToken == null) {
             return ResponseEntity.status(401).body("No Refresh Token found");
