@@ -49,9 +49,10 @@ public class AuthController {
             // Refresh Token 쿠키 설정
             ResponseCookie refreshTokenCookie = ResponseCookie.from("refreshToken", tokens.get("refreshToken"))
                     .httpOnly(true)
-                    .secure(false) // 개발 단계에서는 false, 배포 시 true로 설정
-                    .sameSite("Lax") // 필요에 따라 환경 설정
+                    .secure(true) // 개발 단계에서는 false, 배포 시 true로 설정
+                    .sameSite("None") // 필요에 따라 환경 설정
                     .path("/")
+                    .domain("mockcote.site")
                     .maxAge(EXPIRED_HOUR)
                     .build();
             response.addHeader(HttpHeaders.SET_COOKIE, refreshTokenCookie.toString());
@@ -59,9 +60,10 @@ public class AuthController {
             // Handle 쿠키 설정
             ResponseCookie handleCookie = ResponseCookie.from("handle", tokens.get("handle"))
             		.httpOnly(true)
-            		.secure(false) // 개발 단계에서는 false, 배포 시 true로 설정
-                    .sameSite("Lax") // 필요에 따라 환경 설정
+            		.secure(true) // 개발 단계에서는 false, 배포 시 true로 설정
+                    .sameSite("None") // 필요에 따라 환경 설정
                     .path("/")
+                    .domain("mockcote.site")
                     .maxAge(EXPIRED_HOUR)
                     .build();
             response.addHeader(HttpHeaders.SET_COOKIE, handleCookie.toString());
@@ -69,9 +71,10 @@ public class AuthController {
             // Level 쿠키 설정
             ResponseCookie levelCookie = ResponseCookie.from("level", tokens.get("level"))
             		.httpOnly(true)
-            		.secure(false) // 개발 단계에서는 false, 배포 시 true로 설정
-                    .sameSite("Lax") // 필요에 따라 환경 설정
+            		.secure(true) // 개발 단계에서는 false, 배포 시 true로 설정
+                    .sameSite("None") // 필요에 따라 환경 설정
                     .path("/")
+                    .domain("mockcote.site")
                     .maxAge(EXPIRED_HOUR)
                     .build();
             response.addHeader(HttpHeaders.SET_COOKIE, levelCookie.toString());
