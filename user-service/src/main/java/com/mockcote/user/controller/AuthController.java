@@ -52,7 +52,7 @@ public class AuthController {
                     .secure(true) // 개발 단계에서는 false, 배포 시 true로 설정
                     .sameSite("None") // 필요에 따라 환경 설정
                     .path("/")
-                    .domain("mockcote.site")
+                    .domain(".mockcote.site")
                     .maxAge(EXPIRED_HOUR)
                     .build();
             response.addHeader(HttpHeaders.SET_COOKIE, refreshTokenCookie.toString());
@@ -63,7 +63,7 @@ public class AuthController {
             		.secure(true) // 개발 단계에서는 false, 배포 시 true로 설정
                     .sameSite("None") // 필요에 따라 환경 설정
                     .path("/")
-                    .domain("mockcote.site")
+                    .domain(".mockcote.site")
                     .maxAge(EXPIRED_HOUR)
                     .build();
             response.addHeader(HttpHeaders.SET_COOKIE, handleCookie.toString());
@@ -74,7 +74,7 @@ public class AuthController {
             		.secure(true) // 개발 단계에서는 false, 배포 시 true로 설정
                     .sameSite("None") // 필요에 따라 환경 설정
                     .path("/")
-                    .domain("mockcote.site")
+                    .domain(".mockcote.site")
                     .maxAge(EXPIRED_HOUR)
                     .build();
             response.addHeader(HttpHeaders.SET_COOKIE, levelCookie.toString());
@@ -103,23 +103,30 @@ public class AuthController {
 
         // 쿠키 삭제
         ResponseCookie refreshTokenCookie = ResponseCookie.from("refreshToken", "")
-                .httpOnly(true)
-                .secure(false)
-                .sameSite("Lax")
+        		.httpOnly(true)
+        		.secure(true)
+                .sameSite("None")
+                .domain(".mockcote.site")
                 .path("/")
                 .maxAge(0) // 즉시 만료
                 .build();
         response.addHeader(HttpHeaders.SET_COOKIE, refreshTokenCookie.toString());
 
         ResponseCookie handleCookie = ResponseCookie.from("handle", "")
-                .sameSite("Lax")
+        		.httpOnly(true)
+        		.secure(true)
+                .sameSite("None")
+                .domain(".mockcote.site")
                 .path("/")
                 .maxAge(0)
                 .build();
         response.addHeader(HttpHeaders.SET_COOKIE, handleCookie.toString());
 
         ResponseCookie levelCookie = ResponseCookie.from("level", "")
-                .sameSite("Lax")
+        		.httpOnly(true)
+        		.secure(true)
+                .sameSite("None")
+                .domain(".mockcote.site")
                 .path("/")
                 .maxAge(0)
                 .build();
